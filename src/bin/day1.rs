@@ -109,5 +109,4 @@ fn main() {
 
     let product_three = find_match(&v, 3, 2020);
     println!("Part 2: The answer is: {}", product_three);
-
 }
