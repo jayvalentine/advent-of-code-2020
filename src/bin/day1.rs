@@ -1,7 +1,7 @@
 // Advent of Code 2020
 // Day 1
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
@@ -32,28 +32,33 @@ mod tests {
 // Given an array of numbers <n>, find <group_size> numbers
 // that sum to <sum> and return their product.
 fn find_match(n: &[u32], group_size: u32, sum: u32) -> u32 {
-    let mut map: HashMap<u32, bool> = HashMap::new();
+    let mut map: HashSet<u32> = HashSet::new();
 
     // Put each number into the hashmap.
     for i in n {
-        if map.contains_key(i) {
+        if map.contains(i) {
             panic!("Warning: duplicate: {}", i);
         }
 
-        map.insert(*i, true);
+        map.insert(*i);
     }
     
-    return find_match_inner(&map, group_size, sum);
+    return find_match_inner(&map, group_size, sum).expect("Combination not found");
 }
 
-fn find_match_inner(map: &mut HashMap<u32, bool>, group_size: u32, sum: u32) -> u32 {
+fn find_match_inner(s: &HashSet<u32>, group_size: u32, sum: u32) -> Option<u32> {
     // Now iterate over each key in the hashmap.
     // For each key, check to see if it's opposite
     // (i.e. the value with which it sums to 2020)
     // exists.
     //
     // If so, multiply them and return.
-    for (k, _v) in map {
+    for k in s {
+        // If this value is > sum then it isn't a candidate.
+        if *k > sum {
+            continue;
+        }
+
         let left = *k;
         let right = sum - left;
 
@@ -62,16 +67,23 @@ fn find_match_inner(map: &mut HashMap<u32, bool>, group_size: u32, sum: u32) -> 
         //
         // Recursive case - we need to find (<group_size>-1)
         // numbers that sum to <right>.
-        if group_size == 2 && map.contains_key(&right) {
-            return left * right;
+        if group_size == 2 && s.contains(&right) {
+            return Some(left * right);
         }
-        else {
-            map.remove_entry(&left);
-            return find_match_inner(map, group_size - 1, right);
+        else if group_size > 2 {
+            // Create a new set without the element we're checking.
+            let mut s_new = s.clone();
+            s_new.remove(&left);
+
+            let result = find_match_inner(&s_new, group_size - 1, right);
+            match result {
+                Some(val) => return Some(left * val),
+                None => continue
+            }
         }
     }
 
-    return 0;
+    return None;
 }
 
 fn main() {
