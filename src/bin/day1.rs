@@ -10,17 +10,28 @@ use std::io::{prelude::*, BufReader};
 mod tests {
     use super::*;
 
+    // First example - find product of two numbers in list
+    // which sum to 2020.
     #[test]
     fn example() {
         let n = vec![1721, 979, 366, 299, 675, 1456];
 
-        assert_eq!(514579, find_match(&n));
+        assert_eq!(514579, find_match(&n, 2, 2020));
+    }
+
+    // Second example - find product of three numbers in list
+    // which sum to 2020.
+    #[test]
+    fn example_three() {
+        let n = vec![1721, 979, 366, 299, 675, 1456];
+
+        assert_eq!(241861950, find_match(&n, 3, 2020));
     }
 }
 
-// Given an array of numbers, find the two numbers that sum to 2020
-// and return their product.
-fn find_match(n: &[u32]) -> u32 {
+// Given an array of numbers <n>, find <group_size> numbers
+// that sum to <sum> and return their product.
+fn find_match(n: &[u32], group_size: u32, sum: u32) -> u32 {
     let mut map: HashMap<u32, bool> = HashMap::new();
 
     // Put each number into the hashmap.
@@ -36,7 +47,7 @@ fn find_match(n: &[u32]) -> u32 {
     // If so, multiply them and return.
     for (k, _v) in &map {
         let left = *k;
-        let right = 2020 - left;
+        let right = sum - left;
 
         if map.contains_key(&right) {
             return left * right;
@@ -62,4 +73,8 @@ fn main() {
     }
 
     println!("Data size: {}", v.len());
+
+    // Find the match in the data.
+    let product = find_match(&v, 2, 2020);
+    println!("The answer is: {}", product);
 }
