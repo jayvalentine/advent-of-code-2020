@@ -36,21 +36,38 @@ fn find_match(n: &[u32], group_size: u32, sum: u32) -> u32 {
 
     // Put each number into the hashmap.
     for i in n {
+        if map.contains_key(i) {
+            panic!("Warning: duplicate: {}", i);
+        }
+
         map.insert(*i, true);
     }
+    
+    return find_match_inner(&map, group_size, sum);
+}
 
+fn find_match_inner(map: &mut HashMap<u32, bool>, group_size: u32, sum: u32) -> u32 {
     // Now iterate over each key in the hashmap.
     // For each key, check to see if it's opposite
     // (i.e. the value with which it sums to 2020)
     // exists.
     //
     // If so, multiply them and return.
-    for (k, _v) in &map {
+    for (k, _v) in map {
         let left = *k;
         let right = sum - left;
 
-        if map.contains_key(&right) {
+        // Base case - if we have to find two numbers
+        // that sum, we've just done it.
+        //
+        // Recursive case - we need to find (<group_size>-1)
+        // numbers that sum to <right>.
+        if group_size == 2 && map.contains_key(&right) {
             return left * right;
+        }
+        else {
+            map.remove_entry(&left);
+            return find_match_inner(map, group_size - 1, right);
         }
     }
 
