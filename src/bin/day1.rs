@@ -57,6 +57,9 @@ fn main() {
     for line in reader.lines() {
         let line = line.expect("Invalid line in data/day1.txt");
 
-        println!("{}", line);
+        let n: u32 = line.trim().parse().expect("Non-number in data/day1.txt");
+        v.push(n);
     }
+
+    println!("Data size: {}", v.len());
 }
