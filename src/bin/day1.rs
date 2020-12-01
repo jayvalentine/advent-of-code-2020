@@ -3,6 +3,9 @@
 
 use std::collections::HashMap;
 
+use std::fs::File;
+use std::io::{prelude::*, BufReader};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,5 +47,16 @@ fn find_match(n: &[u32]) -> u32 {
 }
 
 fn main() {
+    // Vector to hold test data.
+    let mut v: Vec<u32> = Vec::new();
 
+    // Read test data in, iterate over each line.
+    let f = File::open("data/day1.txt").expect("Could not open data/day1.txt");
+    let reader = BufReader::new(f);
+
+    for line in reader.lines() {
+        let line = line.expect("Invalid line in data/day1.txt");
+
+        println!("{}", line);
+    }
 }
