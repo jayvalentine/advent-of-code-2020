@@ -105,5 +105,9 @@ fn main() {
 
     // Find the match in the data.
     let product = find_match(&v, 2, 2020);
-    println!("The answer is: {}", product);
+    println!("Part 1: The answer is: {}", product);
+
+    let product_three = find_match(&v, 3, 2020);
+    println!("Part 2: The answer is: {}", product_three);
+
 }
