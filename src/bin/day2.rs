@@ -104,7 +104,18 @@ mod tests_password_valid {
     #[test]
     fn test_too_few() {
         let r = Rule { a: 2, b: 4, character: 'a' };
-        assert_eq!(false, password_valid(&r, "abc"));
+
+        let f = |r: &Rule, p: &str| {
+            let count = p.matches(r.character).count();
+
+            if count >= r.a && count <= r.b {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(false, password_valid(&r, f, "abc"));
     }
 
     // Test that we mark a password as invalid
@@ -112,7 +123,18 @@ mod tests_password_valid {
     #[test]
     fn test_too_many() {
         let r = Rule { a: 2, b: 4, character: 'a' };
-        assert_eq!(false, password_valid(&r, "abracadabra"));
+
+        let f = |r: &Rule, p: &str| {
+            let count = p.matches(r.character).count();
+
+            if count >= r.a && count <= r.b {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(false, password_valid(&r, f, "abracadabra"));
     }
 
     // Test that we mark a password as valid
@@ -121,7 +143,18 @@ mod tests_password_valid {
     #[test]
     fn test_exactly_least() {
         let r = Rule { a: 2, b: 4, character: 'd' };
-        assert_eq!(true, password_valid(&r, "dado"));
+
+        let f = |r: &Rule, p: &str| {
+            let count = p.matches(r.character).count();
+
+            if count >= r.a && count <= r.b {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(true, password_valid(&r, f, "dado"));
     }
 
     // Test that we mark a password as valid
@@ -130,7 +163,18 @@ mod tests_password_valid {
     #[test]
     fn test_exactly_most() {
         let r = Rule { a: 2, b: 4, character: 'd' };
-        assert_eq!(true, password_valid(&r, "dadodd"));
+
+        let f = |r: &Rule, p: &str| {
+            let count = p.matches(r.character).count();
+
+            if count >= r.a && count <= r.b {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(true, password_valid(&r, f, "dadodd"));
     }
 
     // Test that we mark a password as valid
@@ -139,7 +183,161 @@ mod tests_password_valid {
     #[test]
     fn test_somewhere_inbetween() {
         let r = Rule { a: 2, b: 4, character: 'e' };
-        assert_eq!(true, password_valid(&r, "eee"));
+
+        let f = |r: &Rule, p: &str| {
+            let count = p.matches(r.character).count();
+
+            if count >= r.a && count <= r.b {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(true, password_valid(&r, f, "eee"));
+    }
+
+    // Test that we can apply different functions using
+    // rules to a password.
+    #[test]
+    fn test_different_functions() {
+        let r = Rule { a: 2, b: 4, character: 'e' };
+
+        let f1 = |r1: &Rule, p1: &str| {
+            let count = p1.matches(r1.character).count();
+
+            if count >= r1.a && count <= r1.b {
+                return true;
+            }
+
+            return false;
+        };
+
+        // Valid by first rule but not second.
+        assert_eq!(true, password_valid(&r, f1, "ebee"));
+
+        let f2 = |r2: &Rule, p2: &str| {
+            let at_a = if r2.a < p2.len() - 1 {
+                p2.chars().nth(r2.a - 1).unwrap() == r2.character
+            } else {
+                false
+            };
+
+            let at_b = if r2.b < p2.len() - 1 {
+                p2.chars().nth(r2.b - 1).unwrap() == r2.character
+            } else {
+                false
+            };
+
+            if at_a && !at_b {
+                return true;
+            }
+
+            if at_b && !at_a {
+                return true;
+            }
+
+            return false;
+        };
+
+        // Valid by second rule but not first.
+        assert_eq!(true, password_valid(&r, f2, "bedcc"));
+    }
+
+    // One of the examples for part 2.
+    #[test]
+    fn test_example_part2_a() {
+        let r = Rule { a: 1, b: 3, character: 'a' };
+
+        let f = |r: &Rule, p: &str| {
+            let at_a = if r.a < p.len() - 1 {
+                p.chars().nth(r.a - 1).unwrap() == r.character
+            } else {
+                false
+            };
+
+            let at_b = if r.b < p.len() - 1 {
+                p.chars().nth(r.b - 1).unwrap() == r.character
+            } else {
+                false
+            };
+
+            if at_a && !at_b {
+                return true;
+            }
+
+            if at_b && !at_a {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(true, password_valid(&r, f, "abcde"));
+    }
+
+    // Another of the examples for part 2.
+    #[test]
+    fn test_example_part2_b() {
+        let r = Rule { a: 1, b: 3, character: 'b' };
+
+        let f = |r: &Rule, p: &str| {
+            let at_a = if r.a < p.len() - 1 {
+                p.chars().nth(r.a - 1).unwrap() == r.character
+            } else {
+                false
+            };
+
+            let at_b = if r.b < p.len() - 1 {
+                p.chars().nth(r.b - 1).unwrap() == r.character
+            } else {
+                false
+            };
+
+            if at_a && !at_b {
+                return true;
+            }
+
+            if at_b && !at_a {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(false, password_valid(&r, f, "cdefg"));
+    }
+
+    // Another of the examples for part 2.
+    #[test]
+    fn test_example_part2_c() {
+        let r = Rule { a: 2, b: 9, character: 'c' };
+
+        let f = |r: &Rule, p: &str| {
+            let at_a = if r.a <= p.len() {
+                p.chars().nth(r.a - 1).unwrap() == r.character
+            } else {
+                false
+            };
+
+            let at_b = if r.b <= p.len() {
+                p.chars().nth(r.b - 1).unwrap() == r.character
+            } else {
+                false
+            };
+
+            if at_a && !at_b {
+                return true;
+            }
+
+            if at_b && !at_a {
+                return true;
+            }
+
+            return false;
+        };
+
+        assert_eq!(false, password_valid(&r, f, "ccccccccc"));
     }
 }
 
@@ -220,37 +418,89 @@ fn parse_password(s: &str) -> Result<(Rule, String), String> {
     return Ok((rule, String::from(password)));
 }
 
-// Tests a particular password against the given rule for validity.
-fn password_valid(r: &Rule, p: &str) -> bool {
-    let count = p.matches(r.character).count();
-
-    if count >= r.a && count <= r.b {
-        return true;
-    }
-
-    return false;
+// Tests a particular password using the function provided
+// against a given rule, returning whether the password matches or not.
+fn password_valid<T>(r: &Rule, f: T, p: &str) -> bool
+    where T: Fn(&Rule, &str) -> bool {
+    return f(r, p);
 }
 
 fn main() {
+    // Read test data into vector.
+    let mut v: Vec<String> = Vec::new();
+    
     // Read test data in, iterate over each line.
     let f = File::open("data/day2.txt").expect("Could not open data/day2.txt");
     let reader = BufReader::new(f);
 
-    // Count number of valid passwords.
-    let mut valid_passwords = 0;
-
     for line in reader.lines() {
         let line = line.expect("Invalid line in data/day2.txt");
 
+        v.push(line);
+    }
+
+    // Count number of valid passwords.
+    let mut valid_passwords = 0;
+
+    let f = |r: &Rule, p: &str| {
+        let count = p.matches(r.character).count();
+
+        if count >= r.a && count <= r.b {
+            return true;
+        }
+
+        return false;
+    };
+
+    for line in &v {
         let (r, p) = match parse_password(&line) {
             Ok((r, p)) => (r, p),
             Err(_) => panic!(format!("Invalid password: {}", line))
         };
 
-        if password_valid(&r, &p) {
+        if password_valid(&r, f, &p) {
             valid_passwords += 1;
         }
     }
 
     println!("Part 1: Number of valid passwords is: {}", valid_passwords);
+
+    let f = |r: &Rule, p: &str| {
+        let at_a = if r.a <= p.len() {
+            p.chars().nth(r.a - 1).unwrap() == r.character
+        } else {
+            false
+        };
+
+        let at_b = if r.b <= p.len() {
+            p.chars().nth(r.b - 1).unwrap() == r.character
+        } else {
+            false
+        };
+
+        if at_a && !at_b {
+            return true;
+        }
+
+        if at_b && !at_a {
+            return true;
+        }
+
+        return false;
+    };
+
+    valid_passwords = 0;
+
+    for line in &v {
+        let (r, p) = match parse_password(&line) {
+            Ok((r, p)) => (r, p),
+            Err(_) => panic!(format!("Invalid password: {}", line))
+        };
+
+        if password_valid(&r, f, &p) {
+            valid_passwords += 1;
+        }
+    }
+
+    println!("Part 2: Number of valid passwords is: {}", valid_passwords);
 }
