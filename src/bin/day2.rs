@@ -14,8 +14,8 @@ mod tests_parse_rule {
         let r = parse_rule("1-3 a")
             .expect("Expected valid rule to be parsed successfully");
         
-        assert_eq!(1, r.least);
-        assert_eq!(3, r.most);
+        assert_eq!(1, r.a);
+        assert_eq!(3, r.b);
         assert_eq!('a', r.character);
     }
 
@@ -87,8 +87,8 @@ mod tests_password_parsing {
     fn test_valid() {
         let password_and_rule = parse_password("1-3 a: blah").expect("No error returned.");
 
-        assert_eq!(1, password_and_rule.0.least);
-        assert_eq!(3, password_and_rule.0.most);
+        assert_eq!(1, password_and_rule.0.a);
+        assert_eq!(3, password_and_rule.0.b);
         assert_eq!('a', password_and_rule.0.character);
 
         assert_eq!("blah", password_and_rule.1);
@@ -103,7 +103,7 @@ mod tests_password_valid {
     // when there are too few of the required character.
     #[test]
     fn test_too_few() {
-        let r = Rule { least: 2, most: 4, character: 'a' };
+        let r = Rule { a: 2, b: 4, character: 'a' };
         assert_eq!(false, password_valid(&r, "abc"));
     }
 
@@ -111,7 +111,7 @@ mod tests_password_valid {
     // when there are too many of the required character.
     #[test]
     fn test_too_many() {
-        let r = Rule { least: 2, most: 4, character: 'a' };
+        let r = Rule { a: 2, b: 4, character: 'a' };
         assert_eq!(false, password_valid(&r, "abracadabra"));
     }
 
@@ -120,7 +120,7 @@ mod tests_password_valid {
     // of the required character.
     #[test]
     fn test_exactly_least() {
-        let r = Rule { least: 2, most: 4, character: 'd' };
+        let r = Rule { a: 2, b: 4, character: 'd' };
         assert_eq!(true, password_valid(&r, "dado"));
     }
 
@@ -129,7 +129,7 @@ mod tests_password_valid {
     // of the required character.
     #[test]
     fn test_exactly_most() {
-        let r = Rule { least: 2, most: 4, character: 'd' };
+        let r = Rule { a: 2, b: 4, character: 'd' };
         assert_eq!(true, password_valid(&r, "dadodd"));
     }
 
@@ -138,7 +138,7 @@ mod tests_password_valid {
     // of the required character.
     #[test]
     fn test_somewhere_inbetween() {
-        let r = Rule { least: 2, most: 4, character: 'e' };
+        let r = Rule { a: 2, b: 4, character: 'e' };
         assert_eq!(true, password_valid(&r, "eee"));
     }
 }
@@ -152,8 +152,8 @@ mod tests_password_valid {
 // - <least> is the least number of times <char> can occur
 // - <most> is the most number of times <char> can occur
 struct Rule {
-    least: usize,
-    most: usize,
+    a: usize,
+    b: usize,
     character: char,
 }
 
@@ -174,13 +174,13 @@ fn parse_rule(rule: &str) -> Result<Rule, String> {
 
     let split_range = split.0.split_at(range_sep_index);
 
-    let least = match split_range.0.parse::<usize>() {
+    let a = match split_range.0.parse::<usize>() {
         Ok(n) => n,
         Err(_) => return Err(String::from(format!("Non-integer in range: {}", split_range.0)))
     };
 
     // Split includes the separator in the second half of the string.
-    let most = match split_range.1[1..].parse::<usize>() {
+    let b = match split_range.1[1..].parse::<usize>() {
         Ok(n) => n,
         Err(_) => return Err(String::from(format!("Non-integer in range: {}", &split_range.1[1..])))
     };
@@ -197,7 +197,7 @@ fn parse_rule(rule: &str) -> Result<Rule, String> {
     // so this is perfectly safe.
     let character = character_string.chars().nth(0).unwrap();
 
-    return Ok(Rule { least, most, character: character });
+    return Ok(Rule { a, b, character: character });
 }
 
 // Parses a rule-password pair.
@@ -224,7 +224,7 @@ fn parse_password(s: &str) -> Result<(Rule, String), String> {
 fn password_valid(r: &Rule, p: &str) -> bool {
     let count = p.matches(r.character).count();
 
-    if count >= r.least && count <= r.most {
+    if count >= r.a && count <= r.b {
         return true;
     }
 
