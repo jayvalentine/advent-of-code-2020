@@ -16,7 +16,9 @@ mod test_examples {
         ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
         byr:1937 iyr:2017 cid:147 hgt:183cm";
 
-        assert_eq!(true, passport_valid(passport));
+        let (valid, _) = passport_valid(passport);
+
+        assert_eq!(true, valid);
     }
 
     #[test]
@@ -25,7 +27,9 @@ mod test_examples {
         iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884
         hcl:#cfa07d byr:1929";
 
-        assert_eq!(false, passport_valid(passport));
+        let (valid, _) = passport_valid(passport);
+
+        assert_eq!(false, valid);
     }
 
     #[test]
@@ -36,7 +40,9 @@ mod test_examples {
         ecl:brn pid:760753108 byr:1931
         hgt:179cm";
 
-        assert_eq!(true, passport_valid(passport));
+        let (valid, _) = passport_valid(passport);
+
+        assert_eq!(true, valid);
     }
 
     #[test]
@@ -45,11 +51,234 @@ mod test_examples {
         hcl:#cfa07d eyr:2025 pid:166559648
         iyr:2011 ecl:brn hgt:59in";
 
-        assert_eq!(false, passport_valid(passport));
+        let (valid, _) = passport_valid(passport);
+
+        assert_eq!(false, valid);
     }
 }
 
-fn passport_valid(p: &str) -> bool {
+#[cfg(test)]
+mod test_fields {
+    use super::*;
+
+    #[test]
+    fn test_byr_valid() {
+        assert_eq!(true, byr_valid("1920"));
+        assert_eq!(false, byr_valid("1919"));
+
+        assert_eq!(true, byr_valid("2002"));
+        assert_eq!(false, byr_valid("2003"));
+
+        assert_eq!(true, byr_valid("1969"));
+
+        assert_eq!(false, byr_valid("foo"));
+    }
+
+    #[test]
+    fn test_iyr_valid() {
+        assert_eq!(true, iyr_valid("2010"));
+        assert_eq!(false, iyr_valid("2009"));
+
+        assert_eq!(true, iyr_valid("2020"));
+        assert_eq!(false, iyr_valid("2021"));
+
+        assert_eq!(true, iyr_valid("2016"));
+
+        assert_eq!(false, iyr_valid("foo"));
+    }
+
+    #[test]
+    fn test_eyr_valid() {
+        assert_eq!(true, eyr_valid("2020"));
+        assert_eq!(false, eyr_valid("2019"));
+
+        assert_eq!(true, eyr_valid("2030"));
+        assert_eq!(false, eyr_valid("2031"));
+
+        assert_eq!(true, eyr_valid("2025"));
+
+        assert_eq!(false, eyr_valid("foo"));
+    }
+
+    #[test]
+    fn test_hgt_valid() {
+        assert_eq!(true, hgt_valid("190cm"));
+        assert_eq!(true, hgt_valid("60in"));
+
+        // Upper limit
+        assert_eq!(true, hgt_valid("193cm"));
+        assert_eq!(true, hgt_valid("76in"));
+
+        // Lower limit
+        assert_eq!(true, hgt_valid("150cm"));
+        assert_eq!(true, hgt_valid("59in"));
+
+        // Out of range (just)
+        assert_eq!(false, hgt_valid("194cm"));
+        assert_eq!(false, hgt_valid("77in"));
+        assert_eq!(false, hgt_valid("149cm"));
+        assert_eq!(false, hgt_valid("58cm"));
+
+        // Nonsense
+        assert_eq!(false, hgt_valid("bar"));
+
+        // Number; no unit
+        assert_eq!(false, hgt_valid("85"));
+    }
+
+    #[test]
+    fn test_hcl_valid() {
+        assert_eq!(true, hcl_valid("#123456"));
+
+        assert_eq!(false, hcl_valid("#12345"));
+        assert_eq!(false, hcl_valid("#1234567"));
+
+        assert_eq!(true, hcl_valid("#abcdef"));
+        assert_eq!(true, hcl_valid("#1a3c5f"));
+
+        assert_eq!(false, hcl_valid("123456"));
+        assert_eq!(false, hcl_valid("1234567"));
+
+        assert_eq!(false, hcl_valid("#123abz"));
+    }
+
+    #[test]
+    fn test_ecl_valid() {
+        assert_eq!(true, ecl_valid("amb"));
+        assert_eq!(true, ecl_valid("blu"));
+        assert_eq!(true, ecl_valid("brn"));
+        assert_eq!(true, ecl_valid("gry"));
+        assert_eq!(true, ecl_valid("grn"));
+        assert_eq!(true, ecl_valid("hzl"));
+        assert_eq!(true, ecl_valid("oth"));
+
+        assert_eq!(false, ecl_valid("huh"));
+        assert_eq!(false, ecl_valid("am"));
+        assert_eq!(false, ecl_valid("grne"));
+        assert_eq!(false, ecl_valid("grey"));
+    }
+
+    #[test]
+    fn test_pid_valid() {
+        assert_eq!(true, pid_valid("123456789"));
+        assert_eq!(true, pid_valid("000045678"));
+        assert_eq!(true, pid_valid("000000000"));
+
+        assert_eq!(false, pid_valid("0123456789"));
+        assert_eq!(false, pid_valid("12345678"));
+        assert_eq!(false, pid_valid("123A56789"));
+        assert_eq!(false, pid_valid("!23456789"));
+    }
+}
+
+fn pid_valid(s: &str) -> bool {
+    if s.len() != 9 {
+        return false;
+    }
+
+    for c in s.chars() {
+        match c {
+            '0'..='9' => continue,
+            _ => return false
+        };
+    }
+
+    return true;
+}
+
+fn ecl_valid(s: &str) -> bool {
+    let valid = vec!["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
+    return valid.contains(&s);
+}
+
+fn hcl_valid(s: &str) -> bool {
+    // Expect exactly 7 characters.
+    if s.len() != 7 {
+        return false;
+    }
+    
+    // Invalid unless starts with '#'
+    if !s.starts_with("#") {
+        return false;
+    }
+
+    // Iterate over the last 6 characters.
+    for c in s[1..].chars() {
+        match c {
+            'a'..='f' => continue,
+            '0'..='9' => continue,
+            _ => return false
+        };
+    }
+
+    return true;
+}
+
+fn hgt_valid(s: &str) -> bool {
+    let unit = &s[s.len()-2..];
+    
+    let value = &s[..s.len()-2];
+    let value: u32 = match value.parse() {
+        Ok(n) => n,
+        Err(_) => return false
+    };
+
+    if unit == "cm" {
+        return (value >= 150) && (value <= 193);
+    } else if unit == "in" {
+        return (value >= 59) && (value <= 76);
+    } else {
+        return false;
+    }
+}
+
+fn byr_valid(s: &str) -> bool {
+    return yr_valid(s, 1920, 2002);
+}
+
+fn iyr_valid(s: &str) -> bool {
+    return yr_valid(s, 2010, 2020);
+}
+
+fn eyr_valid(s: &str) -> bool {
+    return yr_valid(s, 2020, 2030);
+}
+
+fn yr_valid(s: &str, min: u32, max: u32) -> bool {
+    let year: u32 = match s.parse() {
+        Ok(y) => y,
+        Err(_) => return false
+    };
+
+    return (year >= min) && (year <= max);
+}
+
+fn passport_valid_check_fields(p: &str) -> bool {
+    let (valid, passport) = passport_valid(p);
+    if !valid {
+        return false;
+    }
+
+    // We know the passport has all required fields
+    // so it is safe to expect them here.
+    let byr = passport.get("byr").unwrap();
+    let iyr = passport.get("iyr").unwrap();
+    let eyr = passport.get("eyr").unwrap();
+    let hgt = passport.get("hgt").unwrap();
+    let hcl = passport.get("hcl").unwrap();
+    let ecl = passport.get("ecl").unwrap();
+    let pid = passport.get("pid").unwrap();
+
+    return byr_valid(byr) &&
+        iyr_valid(iyr) &&
+        eyr_valid(eyr) &&
+        hgt_valid(hgt) &&
+        hcl_valid(hcl) &&
+        ecl_valid(ecl) &&
+        pid_valid(pid);
+}
+
+fn passport_valid(p: &str) -> (bool, HashMap<String, String>) {
     let p = p.trim();
 
     let mut fields: HashMap<String, String> = HashMap::new();
@@ -76,11 +305,11 @@ fn passport_valid(p: &str) -> bool {
     // Password is invalid if it is missing any one of them.
     for f in required_fields {
         if !fields.contains_key(f) {
-            return false;
+            return (false, fields);
         }
     }
 
-    return true;
+    return (true, fields);
 }
 
 fn main() {
@@ -100,14 +329,15 @@ fn main() {
     let mut current_passport = String::new();
     let mut valid_passports = 0;
 
-    for line in v {
+    for line in &v {
         // If we've hit a blank line, that's the end of the current
         // passport. Check it if we've collected something.
         //
         // Otherwise this isn't a blank line, and is a continuation
         // of the current passport.
         if line.trim().is_empty() && !current_passport.is_empty() {
-            if passport_valid(&current_passport) {
+            let (valid, _) = passport_valid(&current_passport);
+            if valid {
                 valid_passports += 1;
             }
 
@@ -119,4 +349,28 @@ fn main() {
     }
 
     println!("Part 1: The number of valid passports is: {}", valid_passports);
+
+    current_passport.clear();
+    valid_passports = 0;
+
+    for line in &v {
+        // If we've hit a blank line, that's the end of the current
+        // passport. Check it if we've collected something.
+        //
+        // Otherwise this isn't a blank line, and is a continuation
+        // of the current passport.
+        if line.trim().is_empty() && !current_passport.is_empty() {
+            let valid = passport_valid_check_fields(&current_passport);
+            if valid {
+                valid_passports += 1;
+            }
+
+            current_passport.clear();
+        } else {
+            current_passport.push(' ');
+            current_passport.push_str(&line);
+        }
+    }
+
+    println!("Part 2: The number of valid passports (checking fields) is: {}", valid_passports);
 }
