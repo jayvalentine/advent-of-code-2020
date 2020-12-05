@@ -1,6 +1,8 @@
 // Advent of Code 2020
 // Day 5
 
+use std::collections::HashSet;
+
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
 
@@ -124,13 +126,42 @@ fn main() {
 
     let mut highest_id: u32 = 0;
 
+    // Hashset to store IDs to search for part 2.
+    let mut ids: HashSet<u32> = HashSet::new();
+
     for line in reader.lines() {
         let line = line.expect("Invalid line in data/day5.txt");
 
         let (row, column) = search_seat(line.trim());
         let id = row * 8 + column;
         if id > highest_id { highest_id = id; }
+
+        ids.insert(id);
     }
 
     println!("Part 1: The highest boarding pass ID is: {}", highest_id);
+
+    // Part 2:
+    // We need to find the ID of a missing seat that is not at the front
+    // or back of the plane. We know that ID+1 and ID-1 exist, so we can search
+    // the set for a seat with ID X where X+1 doesn't exist but X+2 does.
+
+    let mut possible: Vec<u32> = Vec::new();
+
+    for id in &ids {
+        let id = *id;
+        if ids.contains(&(id+1)) {
+            continue;
+        }
+
+        if ids.contains(&(id+2)) {
+            possible.push(id+1);
+        }
+    }
+
+    if possible.len() != 1 {
+        panic!("Missing seat ID is ambiguous");
+    }
+
+    println!("Part 2: Missing seat ID is: {}", possible.get(0).unwrap());
 }
