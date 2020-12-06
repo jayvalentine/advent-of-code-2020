@@ -486,7 +486,7 @@ fn main() {
             return true;
         }
 
-        return false;
+        false
     };
 
     valid_passwords = 0;

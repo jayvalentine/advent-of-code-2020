@@ -29,7 +29,7 @@ impl GroupedFileReader {
         return Ok(file);
     }
 
-    pub fn next(&mut self) -> FileReadResult {
+    pub fn next_group(&mut self) -> FileReadResult {
         let mut s = String::new();
         let mut l = String::new();
 

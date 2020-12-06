@@ -307,7 +307,7 @@ fn passport_valid(p: &str) -> (bool, HashMap<String, String>) {
             continue;
         }
 
-        let split_index = field.find(":").expect(&format!("Invalid password field: {}", field));
+        let split_index = field.find(':').expect(&format!("Invalid password field: {}", field));
         let split = field.split_at(split_index);
 
         if fields.contains_key(split.0) {
@@ -336,14 +336,14 @@ fn part1() -> u32 {
 
     let mut valid_passports = 0;
 
-    while let FileReadResult::Success(group) = f.next() {
+    while let FileReadResult::Success(group) = f.next_group() {
         let (valid, _) = passport_valid(&group);
         if valid {
             valid_passports += 1;
         }
     }
 
-    return valid_passports;
+    valid_passports
 }
 
 fn part2() -> u32 {
@@ -352,14 +352,14 @@ fn part2() -> u32 {
 
     let mut valid_passports = 0;
 
-    while let FileReadResult::Success(group) = f.next() {
+    while let FileReadResult::Success(group) = f.next_group() {
         let valid = passport_valid_check_fields(&group);
         if valid {
             valid_passports += 1;
         }
     }
 
-    return valid_passports;
+    valid_passports
 }
 
 fn main() {

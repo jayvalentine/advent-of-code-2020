@@ -93,7 +93,7 @@ fn search_row(v: &[u32], pattern: &str) -> u32 {
 }
 
 fn search(v: &[u32], pattern: &str, first: char, last: char) -> u32 {
-    let direction = pattern.chars().nth(0).unwrap();
+    let direction = pattern.chars().next().unwrap();
 
     let search_range = if direction == first {
         &v[..v.len()/2]
@@ -116,7 +116,7 @@ fn search_seat(s: &str) -> (u32, u32) {
 
     let columns: Vec<u32> = (0..8).collect();
     let column = search_column(&columns, &s[7..]);
-    return (row, column);
+    (row, column)
 }
 
 fn main() {

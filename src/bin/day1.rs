@@ -83,7 +83,7 @@ fn find_match_inner(s: &HashSet<u32>, group_size: u32, sum: u32) -> Option<u32> 
         }
     }
 
-    return None;
+    None
 }
 
 fn main() {

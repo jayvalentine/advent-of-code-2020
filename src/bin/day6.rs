@@ -104,7 +104,7 @@ fn group_answers(group: &str) -> HashSet<char> {
         }
     }
 
-    return s;
+    s
 }
 
 fn part1() -> usize {
@@ -112,12 +112,12 @@ fn part1() -> usize {
 
     let mut answers_total = 0;
 
-    while let FileReadResult::Success(group) = f.next() {
+    while let FileReadResult::Success(group) = f.next_group() {
         let answers = group_answers(&group);
         answers_total += answers.len();
     }
 
-    return answers_total;
+    answers_total
 }
 
 fn main() {

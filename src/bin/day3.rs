@@ -182,7 +182,7 @@ fn trees_in_slope(right: usize, down: usize, grid: &str) -> Result<usize, &str> 
         y += down;
     }
 
-    return Ok(num_trees);
+    Ok(num_trees)
 }
 
 fn main() {
