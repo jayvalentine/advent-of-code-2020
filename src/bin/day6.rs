@@ -3,8 +3,7 @@
 
 use std::collections::HashSet;
 
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
+use aoc::file::*;
 
 #[cfg(test)]
 mod test_examples {
@@ -109,30 +108,13 @@ fn group_answers(group: &str) -> HashSet<char> {
 }
 
 fn part1() -> usize {
-    // Read test data in, iterate over each line.
-    let f = File::open("data/day6.txt").expect("Could not open data/day6.txt");
-    let reader = BufReader::new(f);
+    let mut f = GroupedFileReader::open("data/day6.txt").expect("Could not open puzzle data.");
 
-    let mut current_group = String::new();
     let mut answers_total = 0;
 
-    for line in reader.lines() {
-        let line = line.expect("Invalid line in data/day6.txt");
-
-        // If we've hit a blank line, that's the end of the current
-        // group. Check it if we've collected something.
-        //
-        // Otherwise this isn't a blank line, and is a continuation
-        // of the current group.
-        if line.trim().is_empty() && !current_group.is_empty() {
-            let answers = group_answers(&current_group);
-            answers_total += answers.len();
-
-            current_group.clear();
-        } else {
-            current_group.push('\n');
-            current_group.push_str(&line);
-        }
+    while let FileReadResult::Success(group) = f.next() {
+        let answers = group_answers(&group);
+        answers_total += answers.len();
     }
 
     return answers_total;

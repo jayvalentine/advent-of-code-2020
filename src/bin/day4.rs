@@ -3,8 +3,7 @@
 
 use std::collections::HashMap;
 
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
+use aoc::file::*;
 
 #[cfg(test)]
 mod test_examples {
@@ -171,6 +170,25 @@ mod test_fields {
     }
 }
 
+// Regression testing previous puzzle answers to make sure
+// we don't break anything.
+#[cfg(test)]
+mod test_puzzle_answers {
+    use super::*;
+
+    #[test]
+    fn test_part1() {
+        let answer = part1();
+        assert_eq!(216, answer);
+    }
+
+    #[test]
+    fn test_part2() {
+        let answer = part2();
+        assert_eq!(150, answer);
+    }
+}
+
 fn pid_valid(s: &str) -> bool {
     if s.len() != 9 {
         return false;
@@ -312,65 +330,42 @@ fn passport_valid(p: &str) -> (bool, HashMap<String, String>) {
     return (true, fields);
 }
 
-fn main() {
-    // Read test data into vector.
-    let mut v: Vec<String> = Vec::new();
-    
+fn part1() -> u32 {
     // Read test data in, iterate over each line.
-    let f = File::open("data/day4.txt").expect("Could not open data/day4.txt");
-    let reader = BufReader::new(f);
+    let mut f = GroupedFileReader::open("data/day4.txt").expect("Could not open data/day4.txt");
 
-    for line in reader.lines() {
-        let line = line.expect("Invalid line in data/day4.txt");
-
-        v.push(line);
-    }
-
-    let mut current_passport = String::new();
     let mut valid_passports = 0;
 
-    for line in &v {
-        // If we've hit a blank line, that's the end of the current
-        // passport. Check it if we've collected something.
-        //
-        // Otherwise this isn't a blank line, and is a continuation
-        // of the current passport.
-        if line.trim().is_empty() && !current_passport.is_empty() {
-            let (valid, _) = passport_valid(&current_passport);
-            if valid {
-                valid_passports += 1;
-            }
-
-            current_passport.clear();
-        } else {
-            current_passport.push(' ');
-            current_passport.push_str(&line);
+    while let FileReadResult::Success(group) = f.next() {
+        let (valid, _) = passport_valid(&group);
+        if valid {
+            valid_passports += 1;
         }
     }
 
+    return valid_passports;
+}
+
+fn part2() -> u32 {
+    // Read test data in, iterate over each line.
+    let mut f = GroupedFileReader::open("data/day4.txt").expect("Could not open data/day4.txt");
+
+    let mut valid_passports = 0;
+
+    while let FileReadResult::Success(group) = f.next() {
+        let valid = passport_valid_check_fields(&group);
+        if valid {
+            valid_passports += 1;
+        }
+    }
+
+    return valid_passports;
+}
+
+fn main() {
+    let valid_passports = part1();
     println!("Part 1: The number of valid passports is: {}", valid_passports);
 
-    current_passport.clear();
-    valid_passports = 0;
-
-    for line in &v {
-        // If we've hit a blank line, that's the end of the current
-        // passport. Check it if we've collected something.
-        //
-        // Otherwise this isn't a blank line, and is a continuation
-        // of the current passport.
-        if line.trim().is_empty() && !current_passport.is_empty() {
-            let valid = passport_valid_check_fields(&current_passport);
-            if valid {
-                valid_passports += 1;
-            }
-
-            current_passport.clear();
-        } else {
-            current_passport.push(' ');
-            current_passport.push_str(&line);
-        }
-    }
-
+    let valid_passports = part2();
     println!("Part 2: The number of valid passports (checking fields) is: {}", valid_passports);
 }
