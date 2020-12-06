@@ -48,9 +48,7 @@ impl GroupedFileReader {
                     }
                 }
                 
-                // Normal read. Line will already have been
-                // appended to string, so we just need to append
-                // the separator character.
+                // Normal read.
                 Ok(_) => {
                     // If the line we read is completely whitespace,
                     // that's the end of this group.
