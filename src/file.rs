@@ -58,7 +58,6 @@ impl GroupedFileReader {
                         return FileReadResult::Success(s);
                     } else {
                         s.push_str(&l);
-                        s.push('\n');
                     }
                 }
 
