@@ -167,6 +167,50 @@ mod test_examples_single_depth {
 }
 
 #[cfg(test)]
+mod test_count {
+    use super::*;
+
+    #[test]
+    fn test_contains_none() {
+        let rules = "bright pink bags contain no other bags.";
+        let rules = Ruleset::from_str(rules);
+
+        let bright_pink = Bag::from_str("bright pink");
+
+        assert_eq!(0, bright_pink.count(&rules));
+    }
+
+    #[test]
+    fn test_contains_depth_one() {
+        let rules = "
+        bright pink bags contain no other bags.
+        dark green bags contain 1 bright pink bag, 4 deep purple bags.
+        deep purple bags contain no other bags.";
+
+        let rules = Ruleset::from_str(rules);
+
+        let dark_green = Bag::from_str("dark green");
+
+        assert_eq!(5, dark_green.count(&rules));
+    }
+
+    #[test]
+    fn test_contains_depth_two() {
+        let rules = "
+        bright pink bags contain no other bags.
+        dark green bags contain 1 bright pink bag, 4 deep purple bags.
+        deep purple bags contain 5 lovely lilac bags.
+        lovely lilac bags contain no other bags.";
+
+        let rules = Ruleset::from_str(rules);
+
+        let dark_green = Bag::from_str("dark green");
+
+        assert_eq!(25, dark_green.count(&rules));
+    }
+}
+
+#[cfg(test)]
 mod test_example {
     use super::*;
 
@@ -266,6 +310,46 @@ mod test_example {
         let dotted_black = Bag::from_str("dotted black");
         assert_eq!(false, dotted_black.contains(&rules, &shiny_gold));
     }
+
+    // Test the first example from part 2
+    #[test]
+    fn example_part2_a() {
+        let rules = "
+        light red bags contain 1 bright white bag, 2 muted yellow bags.
+        dark orange bags contain 3 bright white bags, 4 muted yellow bags.
+        bright white bags contain 1 shiny gold bag.
+        muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
+        shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
+        dark olive bags contain 3 faded blue bags, 4 dotted black bags.
+        vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
+        faded blue bags contain no other bags.
+        dotted black bags contain no other bags.";
+
+        let rules = Ruleset::from_str(rules);
+
+        let shiny_gold = Bag::from_str("shiny gold");
+        
+        assert_eq!(32, shiny_gold.count(&rules));
+    }
+
+    // Test the second example from part 2
+    #[test]
+    fn example_part2_b() {
+        let rules = "
+        shiny gold bags contain 2 dark red bags.
+        dark red bags contain 2 dark orange bags.
+        dark orange bags contain 2 dark yellow bags.
+        dark yellow bags contain 2 dark green bags.
+        dark green bags contain 2 dark blue bags.
+        dark blue bags contain 2 dark violet bags.
+        dark violet bags contain no other bags.";
+
+        let rules = Ruleset::from_str(rules);
+
+        let shiny_gold = Bag::from_str("shiny gold");
+        
+        assert_eq!(126, shiny_gold.count(&rules));
+    }
 }
 
 #[cfg(test)]
@@ -293,6 +377,11 @@ mod test_puzzles {
     #[test]
     fn test_part1() {
         assert_eq!(208, part1());
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(1664, part2());
     }
 }
 
@@ -443,6 +532,17 @@ impl Bag {
         }
     }
 
+    fn count(&self, rules: &Ruleset) -> u32 {
+        let mut count = 0;
+
+        for (bag, number) in self.contains_directly(rules) {
+            count += number;
+            count += number * bag.count(rules);
+        }
+        
+        return count;
+    }
+
     fn contains_directly<'a>(&self, rules: &'a Ruleset) -> &'a HashMap<Bag, u32> {
         return rules.contains(self);
     }
@@ -469,7 +569,19 @@ fn part1() -> u32 {
     return count;
 }
 
+fn part2() -> u32 {
+    // Read rules into file.
+    let rules = fs::read_to_string("data/day7.txt").unwrap();
+    let rules = Ruleset::from_str(&rules);
+
+    // How many bags fit inside a "shiny gold" bag?
+    return Bag::from_str("shiny gold").count(&rules);
+}
+
 fn main() {
     let count_part1 = part1();
     println!("Part 1: Number of bags that contain shiny gold is: {}", count_part1);
+
+    let count_part2 = part2();
+    println!("Part 2: Number of bags that fit inside a shiny gold bag is: {}", count_part2);
 }
