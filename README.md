@@ -18,6 +18,6 @@ binaries, there will also be a single library with multiple modules
 to contain this.
 
 Each day's binary has its own unit tests. Once I start refactoring,
-the library will also no doubt have its own tests. Perhaps at some
+the library will also have its own tests. Perhaps at some
 point I might see the need for some kind of integration test, but
 I think this is unlikely.
