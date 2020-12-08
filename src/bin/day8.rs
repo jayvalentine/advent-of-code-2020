@@ -108,10 +108,66 @@ mod test_examples {
             Instruction::Acc(6),
         ];
 
-        let state = find_loop(program);
+        let state = find_loop(&program).0;
 
         assert_eq!(1, state.instruction);
         assert_eq!(5, state.accumulator);
+    }
+
+    #[test]
+    fn test_example_part2_noloop() {
+        let program = vec![
+            Instruction::Nop(0),
+            Instruction::Acc(1),
+            Instruction::Jmp(4),
+            Instruction::Acc(3),
+            Instruction::Jmp(-3),
+            Instruction::Acc(-99),
+            Instruction::Acc(1),
+            Instruction::Nop(-4),
+            Instruction::Acc(6),
+        ];
+
+        let state = find_loop(&program).0;
+
+        assert_eq!(program.len(), state.instruction as usize);
+        assert_eq!(8, state.accumulator);
+    }
+
+    #[test]
+    fn test_example_part2_break_loop() {
+        let program = vec![
+            Instruction::Nop(0),
+            Instruction::Acc(1),
+            Instruction::Jmp(4),
+            Instruction::Acc(3),
+            Instruction::Jmp(-3),
+            Instruction::Acc(-99),
+            Instruction::Acc(1),
+            Instruction::Jmp(-4),
+            Instruction::Acc(6),
+        ];
+
+        let new_program = break_loop(&program);
+
+        // New program must be same size as old one.
+        assert_eq!(program.len(), new_program.len());
+
+        // Second to last instruction should be changed
+        // to a nop.
+        let expected_program = vec![
+            Instruction::Nop(0),
+            Instruction::Acc(1),
+            Instruction::Jmp(4),
+            Instruction::Acc(3),
+            Instruction::Jmp(-3),
+            Instruction::Acc(-99),
+            Instruction::Acc(1),
+            Instruction::Nop(-4),
+            Instruction::Acc(6),
+        ];
+
+        assert_eq!(expected_program, new_program);
     }
 }
 
@@ -123,6 +179,11 @@ mod test_puzzles {
     fn test_part1() {
         assert_eq!(1782, part1());
     }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(797, part2());
+    }
 }
 
 struct ProgramState {
@@ -130,7 +191,7 @@ struct ProgramState {
     accumulator: i32
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 enum Instruction {
     Nop(i32),
     Acc(i32),
@@ -167,23 +228,63 @@ fn execute(i: &Instruction, s: &ProgramState) -> ProgramState {
     };
 }
 
-fn find_loop(p: Vec<Instruction>) -> ProgramState {
+// Returns the program state and set of visited instructions
+// either on termination or on the second visit to any given instruction.
+fn find_loop(p: &Vec<Instruction>) -> (ProgramState, HashSet<i32>) {
     let mut state = ProgramState { instruction: 0, accumulator: 0 };
 
     let mut visited: HashSet<i32> = HashSet::new();
 
     loop {
         let index = state.instruction as usize;
+
         let instruction = p.get(index).expect("Execution out of bounds");
 
         state = execute(instruction, &state);
 
+        if (state.instruction as usize) == p.len() {
+            return (state, visited);
+        }
+
         if visited.contains(&state.instruction) {
-            return state;
+            return (state, visited);
         }
 
         visited.insert(state.instruction);
     }
+}
+
+// Given a program with an infinite loop, returns an altered
+// version of that program with one instruction changed,
+// which does not contain a loop.
+fn break_loop(p: &Vec<Instruction>) -> Vec<Instruction> {
+    // Get the instructions visited by the original program.
+    let visited = find_loop(p).1;
+
+    // For each nop or jmp in the visited instructions,
+    // change it and see if the program completes.
+    for i in visited {
+        let new_instruction = match p.get(i as usize).unwrap() {
+            Instruction::Nop(n) => Instruction::Jmp(*n),
+            Instruction::Jmp(n) => Instruction::Nop(*n),
+            Instruction::Acc(_) => continue // Skip adds
+        };
+
+        // Clone the program.
+        let mut new_p = p.to_vec();
+
+        // Insert the new instruction.
+        new_p[i as usize] = new_instruction;
+
+        // Run, see if it loops.
+        let state = find_loop(&new_p).0;
+        let index = state.instruction as usize;
+        if index == new_p.len() {
+            return new_p;
+        }
+    }
+
+    panic!("Could not break loop");
 }
 
 fn part1() -> i32 {
@@ -195,7 +296,22 @@ fn part1() -> i32 {
         p.push(Instruction::parse(i.trim()));
     }
 
-    let state = find_loop(p);
+    let state = find_loop(&p).0;
+
+    return state.accumulator;
+}
+
+fn part2() -> i32 {
+    let s = fs::read_to_string("data/day8.txt").expect("Could not read data/day8.txt");
+
+    let mut p: Vec<Instruction> = Vec::new();
+
+    for i in s.trim().split('\n') {
+        p.push(Instruction::parse(i.trim()));
+    }
+
+    let fixed_p = break_loop(&p);
+    let state = find_loop(&fixed_p).0;
 
     return state.accumulator;
 }
@@ -203,4 +319,7 @@ fn part1() -> i32 {
 fn main() {
     let acc_part1 = part1();
     println!("The value of the accumulator at the loop-point is: {}", acc_part1);
+
+    let acc_part2 = part2();
+    println!("The value of the accumulator at the end of the fixed program is: {}", acc_part2);
 }
