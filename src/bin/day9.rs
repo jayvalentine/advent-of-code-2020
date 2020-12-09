@@ -123,6 +123,11 @@ mod test_puzzle {
     fn test_part1() {
         assert_eq!(85848519, part1());
     }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(13414198, part2());
+    }
 }
 
 fn is_valid(values: &[u64], i: usize, preamble_count: usize) -> bool {
@@ -208,7 +213,6 @@ fn find_weakness(input: &[u64], invalid: u64) -> (u64, u64) {
 
 fn first_invalid(input: &[u64], preamble_count: usize) -> u64 {
     for i in preamble_count..input.len() {
-        println!("{}", i);
         if !is_valid(&input, i, preamble_count) {
             return input[i];
         }
@@ -230,7 +234,26 @@ fn part1() -> u64 {
     return first_invalid(&input, 25);
 }
 
+fn part2() -> u64 {
+    let input = fs::read_to_string("data/day9.txt")
+        .expect("Could not read data/day9.txt");
+
+    let input = input.trim().split('\n').map(|i| {
+        i.trim().parse().unwrap()
+    });
+
+    let input: Vec<u64> = Vec::from_iter(input);
+
+    let invalid = first_invalid(&input, 25);
+
+    let (min, max) = find_weakness(&input, invalid);
+    return min + max;
+}
+
 fn main() {
     let invalid_part1 = part1();
     println!("Part 1: The first invalid number in the list is: {}", invalid_part1);
+
+    let weakness_part2 = part2();
+    println!("Part 2: The weakness is: {}", weakness_part2);
 }
