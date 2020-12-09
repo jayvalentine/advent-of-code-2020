@@ -37,6 +37,35 @@ mod test_examples {
         let invalid = first_invalid(input, 5);
         assert_eq!(127, invalid);
     }
+
+    #[test]
+    fn test_example_part2() {
+        let input = "
+        35
+        20
+        15
+        25
+        47
+        40
+        62
+        55
+        65
+        95
+        102
+        117
+        150
+        182
+        127
+        219
+        299
+        277
+        309
+        576";
+
+        let (min, max) = find_weakness(input, 127);
+        assert_eq!(15, min);
+        assert_eq!(47, max);
+    }
 }
 
 #[cfg(test)]
@@ -127,6 +156,10 @@ fn is_valid(values: &[u64], i: usize, preamble_count: usize) -> bool {
     }
 
     return false;
+}
+
+fn find_weakness(input: &str, invalid: u64) -> (u64, u64) {
+    return (0, 0);
 }
 
 fn first_invalid(input: &str, preamble_count: usize) -> u64 {
