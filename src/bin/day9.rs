@@ -2,7 +2,7 @@
 // Day 9
 
 use std::collections::HashSet;
-use std::iter::FromIterator;
+use std::iter::{FromIterator, Sum};
 
 use std::fs;
 
@@ -172,9 +172,9 @@ fn is_valid(values: &[u64], i: usize, preamble_count: usize) -> bool {
 
 fn find_weakness(input: &[u64], invalid: u64) -> (u64, u64) {
     // Vector to hold our contiguous set that sum to invalid.
-    let s: Vec<u64> = Vec::new();
+    let mut s: Vec<u64> = Vec::new();
 
-    for &i in input.iter() {
+    for (pos, &i) in input.iter().enumerate() {
         // Skip if >= invalid, because it can't then
         // be part of a set of at least 2 numbers
         // summing to invalid.
@@ -182,9 +182,28 @@ fn find_weakness(input: &[u64], invalid: u64) -> (u64, u64) {
             continue;
         }
 
+        s.push(i);
 
+        // Can this be part of a set?
+        for &j in input[pos+1..].iter() {
+            // Add to set.
+            s.push(j);
+
+            // If sum(set) is now == invalid, return the min and max.
+            // Otherwise, if sum(set) > invalid, clear it and break.
+            // Otherwise, continue.
+            let sum = s.iter().sum::<u64>();
+
+            if sum == invalid {
+                return (*s.iter().min().unwrap(), *s.iter().max().unwrap());
+            } else if sum > invalid {
+                s.clear();
+                break;
+            }
+        }
     }
-    return (0, 0);
+
+    panic!("Could not find contiguous set!");
 }
 
 fn first_invalid(input: &[u64], preamble_count: usize) -> u64 {
