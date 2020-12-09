@@ -34,7 +34,13 @@ mod test_examples {
         309
         576";
 
-        let invalid = first_invalid(input, 5);
+        let input = input.trim().split('\n').map(|i| {
+            i.trim().parse().unwrap()
+        });
+    
+        let input: Vec<u64> = Vec::from_iter(input);
+
+        let invalid = first_invalid(&input, 5);
         assert_eq!(127, invalid);
     }
 
@@ -62,7 +68,13 @@ mod test_examples {
         309
         576";
 
-        let (min, max) = find_weakness(input, 127);
+        let input = input.trim().split('\n').map(|i| {
+            i.trim().parse().unwrap()
+        });
+    
+        let input: Vec<u64> = Vec::from_iter(input);
+
+        let (min, max) = find_weakness(&input, 127);
         assert_eq!(15, min);
         assert_eq!(47, max);
     }
@@ -158,17 +170,24 @@ fn is_valid(values: &[u64], i: usize, preamble_count: usize) -> bool {
     return false;
 }
 
-fn find_weakness(input: &str, invalid: u64) -> (u64, u64) {
+fn find_weakness(input: &[u64], invalid: u64) -> (u64, u64) {
+    // Vector to hold our contiguous set that sum to invalid.
+    let s: Vec<u64> = Vec::new();
+
+    for &i in input.iter() {
+        // Skip if >= invalid, because it can't then
+        // be part of a set of at least 2 numbers
+        // summing to invalid.
+        if i >= invalid {
+            continue;
+        }
+
+
+    }
     return (0, 0);
 }
 
-fn first_invalid(input: &str, preamble_count: usize) -> u64 {
-    let input = input.trim().split('\n').map(|i| {
-        i.trim().parse().unwrap()
-    });
-
-    let input: Vec<u64> = Vec::from_iter(input);
-
+fn first_invalid(input: &[u64], preamble_count: usize) -> u64 {
     for i in preamble_count..input.len() {
         println!("{}", i);
         if !is_valid(&input, i, preamble_count) {
@@ -182,6 +201,12 @@ fn first_invalid(input: &str, preamble_count: usize) -> u64 {
 fn part1() -> u64 {
     let input = fs::read_to_string("data/day9.txt")
         .expect("Could not read data/day9.txt");
+
+    let input = input.trim().split('\n').map(|i| {
+        i.trim().parse().unwrap()
+    });
+
+    let input: Vec<u64> = Vec::from_iter(input);
 
     return first_invalid(&input, 25);
 }
