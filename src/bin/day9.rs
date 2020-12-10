@@ -2,7 +2,7 @@
 // Day 9
 
 use std::collections::HashSet;
-use std::iter::{FromIterator, Sum};
+use std::iter::{FromIterator};
 
 use std::fs;
 
