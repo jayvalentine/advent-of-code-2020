@@ -61,6 +61,11 @@ mod test_puzzles {
     fn test_part1() {
         assert_eq!(2251, part1(false));
     }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(2019, part2(false));
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -275,7 +280,19 @@ fn part1(print_state: bool) -> usize {
     return stable_occupied_seats(input, rule_part1, print_state);
 }
 
+fn part2(print_state: bool) -> usize {
+    let input = fs::read_to_string("data/day11.txt")
+        .expect("Could not read data/day11.txt");
+
+    let input = parse_input(&input);
+
+    return stable_occupied_seats(input, rule_part2, print_state);
+}
+
 fn main() {
     let occupied_seats = part1(true);
     println!("Part 1: The number of occupied seats is: {}", occupied_seats);
+
+    let occupied_seats = part2(true);
+    println!("Part 2: The number of occupied seats is: {}", occupied_seats)
 }
