@@ -5,6 +5,9 @@ use std::collections::HashMap;
 
 use std::fs;
 
+type State = HashMap<(usize, usize), Seat>;
+type Rule = fn(&(usize, usize), Seat, &State) -> Seat;
+
 #[cfg(test)]
 mod test_examples {
     use super::*;
@@ -25,7 +28,7 @@ mod test_examples {
 
         let input = parse_input(input);
 
-        let seats = stable_occupied_seats(input, false);
+        let seats = stable_occupied_seats(input, rule_part1, false);
         assert_eq!(37, seats);
     }
 }
@@ -75,7 +78,7 @@ fn parse_input(input: &str) -> HashMap<(usize, usize), Seat> {
     return seats;
 }
 
-fn stable_occupied_seats(input: HashMap<(usize, usize), Seat>, print_states: bool) -> usize {
+fn stable_occupied_seats(input: State, rule: Rule, print_states: bool) -> usize {
     let mut current_state = input;
 
     loop {
@@ -104,7 +107,7 @@ fn stable_occupied_seats(input: HashMap<(usize, usize), Seat>, print_states: boo
             }
         }
 
-        let new_state = next_generation(&current_state);
+        let new_state = next_generation(&current_state, rule);
 
         if new_state == current_state {
             return new_state
@@ -141,17 +144,17 @@ fn rule_part1(point: &(usize, usize), seat: Seat, state: &HashMap<(usize, usize)
     };
 }
 
-fn next_generation(state: &HashMap<(usize, usize), Seat>) -> HashMap<(usize, usize), Seat> {
+fn next_generation(state: &State, rule: Rule) -> State {
     let mut next = HashMap::new();
 
     for (&point, &seat) in state {
-        next.insert(point, rule_part1(&point, seat, state));
+        next.insert(point, rule(&point, seat, state));
     }
 
     return next;
 }
 
-fn occupied(point: &(usize, usize), state: &HashMap<(usize, usize), Seat>) -> usize {
+fn occupied(point: &(usize, usize), state: &State) -> usize {
     let x = point.0;
     let y = point.1;
 
@@ -183,7 +186,7 @@ fn part1(print_state: bool) -> usize {
 
     let input = parse_input(&input);
 
-    return stable_occupied_seats(input, print_state);
+    return stable_occupied_seats(input, rule_part1, print_state);
 }
 
 fn main() {
