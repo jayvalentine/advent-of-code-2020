@@ -31,6 +31,26 @@ mod test_examples {
         let seats = stable_occupied_seats(input, rule_part1, false);
         assert_eq!(37, seats);
     }
+
+    #[test]
+    fn test_example_part2() {
+        let input = "
+        L.LL.LL.LL
+        LLLLLLL.LL
+        L.L.L..L..
+        LLLL.LL.LL
+        L.LL.LL.LL
+        L.LLLLL.LL
+        ..L.L.....
+        LLLLLLLLLL
+        L.LLLLLL.L
+        L.LLLLL.LL";
+
+        let input = parse_input(input);
+
+        let seats = stable_occupied_seats(input, rule_part2, false);
+        assert_eq!(26, seats);
+    }
 }
 
 #[cfg(test)]
@@ -64,10 +84,7 @@ fn parse_input(input: &str) -> HashMap<(usize, usize), Seat> {
                 _ => panic!("Invalid character: {}", col)
             };
 
-            // Don't add floor tiles to map.
-            if s != Seat::None {
-                seats.insert((x, y), s);
-            }
+            seats.insert((x, y), s);
 
             x += 1;
         }
@@ -120,7 +137,7 @@ fn stable_occupied_seats(input: State, rule: Rule, print_states: bool) -> usize 
     }
 }
 
-fn rule_part1(point: &(usize, usize), seat: Seat, state: &HashMap<(usize, usize), Seat>) -> Seat {
+fn rule_part1(point: &(usize, usize), seat: Seat, state: &State) -> Seat {
     let occupied = occupied(point, state);
 
     // Apply rules based on the current value and the
@@ -128,6 +145,30 @@ fn rule_part1(point: &(usize, usize), seat: Seat, state: &HashMap<(usize, usize)
     return match seat {
         Seat::Occupied => {
             if occupied >= 4 {
+                Seat::Unoccupied
+            } else {
+                seat
+            }
+        },
+        Seat::Unoccupied => {
+            if occupied == 0 {
+                Seat::Occupied
+            } else {
+                seat
+            }
+        }
+        _ => seat
+    };
+}
+
+fn rule_part2(point: &(usize, usize), seat: Seat, state: &State) -> Seat {
+    let occupied = occupied_in_distance(point, state);
+
+    // Apply rules based on the current value and the
+    // number of occupied neighbours.
+    return match seat {
+        Seat::Occupied => {
+            if occupied >= 5 {
                 Seat::Unoccupied
             } else {
                 seat
@@ -178,6 +219,51 @@ fn occupied(point: &(usize, usize), state: &State) -> usize {
     }
 
     return count;
+}
+
+fn occupied_in_distance(point: &(usize, usize), state: &State) -> usize {
+    let mut count = 0;
+
+    // NW
+    count += seat_in_line(point, state, -1, -1);
+    // W
+    count += seat_in_line(point, state, -1, 0);
+    // SW
+    count += seat_in_line(point, state, -1, 1);
+    // S
+    count += seat_in_line(point, state, 0, 1);
+    // SE
+    count += seat_in_line(point, state, 1, 1);
+    // E
+    count += seat_in_line(point, state, 1, 0);
+    // NE
+    count += seat_in_line(point, state, 1, -1);
+    // N
+    count += seat_in_line(point, state, 0, -1);
+
+    return count;
+}
+
+fn seat_in_line(point: &(usize, usize), state: &State, dx: isize, dy: isize) -> usize {
+    let mut x = (point.0 as isize) + dx;
+    let mut y = (point.1 as isize) + dy;
+
+    while x >= 0 && y >= 0 {
+        if !state.contains_key(&(x as usize, y as usize)) {
+            return 0;
+        }
+
+        match state.get(&(x as usize, y as usize)).unwrap() {
+            Seat::Unoccupied => return 0,
+            Seat::Occupied => return 1,
+            _ => ()
+        }
+
+        x += dx;
+        y += dy;
+    }
+
+    return 0;
 }
 
 fn part1(print_state: bool) -> usize {
