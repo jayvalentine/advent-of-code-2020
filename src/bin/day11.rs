@@ -117,33 +117,35 @@ fn stable_occupied_seats(input: HashMap<(usize, usize), Seat>, print_states: boo
     }
 }
 
+fn rule_part1(point: &(usize, usize), seat: Seat, state: &HashMap<(usize, usize), Seat>) -> Seat {
+    let occupied = occupied(point, state);
+
+    // Apply rules based on the current value and the
+    // number of occupied neighbours.
+    return match seat {
+        Seat::Occupied => {
+            if occupied >= 4 {
+                Seat::Unoccupied
+            } else {
+                seat
+            }
+        },
+        Seat::Unoccupied => {
+            if occupied == 0 {
+                Seat::Occupied
+            } else {
+                seat
+            }
+        }
+        _ => seat
+    };
+}
+
 fn next_generation(state: &HashMap<(usize, usize), Seat>) -> HashMap<(usize, usize), Seat> {
     let mut next = HashMap::new();
 
-    for (point, seat) in state {
-        let occupied = occupied(point, &state);
-
-        // Apply rules based on the current value and the
-        // number of occupied neighbours.
-        let new_seat = match seat {
-            Seat::Occupied => {
-                if occupied >= 4 {
-                    Seat::Unoccupied
-                } else {
-                    *seat
-                }
-            },
-            Seat::Unoccupied => {
-                if occupied == 0 {
-                    Seat::Occupied
-                } else {
-                    *seat
-                }
-            }
-            _ => *seat
-        };
-
-        next.insert(*point, new_seat);
+    for (&point, &seat) in state {
+        next.insert(point, rule_part1(&point, seat, state));
     }
 
     return next;
