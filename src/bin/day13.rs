@@ -71,29 +71,33 @@ mod test_puzzles {
     }
 }
 
-fn parse_buses(input: &str) -> (u32, HashSet<u32>) {
+fn parse_buses(input: &str) -> (u32, Vec<u32>) {
     let mut input = input.trim().split('\n');
     let arrival = input.next().expect("No arrival in input").trim();
     let arrival = arrival.parse().expect("Arrival not a valid integer");
 
-    let mut buses = HashSet::new();
+    let mut buses = Vec::new();
     for b in input.next().expect("No bus schedule in input")
         .trim().split(',') {
-        if b == "x" { continue };
+        if b == "x" {
+            buses.push(0);
+        } else {
+            let b = b.parse()
+                .expect(&format!("Bus ID is not a valid integer: {}", b));
 
-        let b = b.parse()
-            .expect(&format!("Bus ID is not a valid integer: {}", b));
-
-        buses.insert(b);
+            buses.push(b);
+        }
     }
 
     return (arrival, buses);
 }
 
-fn earliest_bus(arrival: u32, buses: HashSet<u32>) -> (u32, u32) {
+fn earliest_bus(arrival: u32, buses: Vec<u32>) -> (u32, u32) {
     let mut closest = u32::MAX;
     let mut id = 0;
     for bus in buses {
+        if bus == 0 { continue; }
+
         let departure = next_departure(arrival, bus);
         if departure < closest {
             closest = departure;
