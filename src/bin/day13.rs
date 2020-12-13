@@ -1,7 +1,7 @@
 // Advent of Code 2020
 // Day 13
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::fs;
 
 #[cfg(test)]
@@ -121,14 +121,24 @@ fn earliest_bus(arrival: u32, buses: Vec<u32>) -> (u32, u32) {
     return (id, closest);
 }
 
-fn earliest_timestamp(buses: &[u32]) -> u128 {
+fn earliest_timestamp(buses: &[u32]) -> u64 {
     // Only check multiples of the first entry in
     // the schedule.
-    let first = buses[0] as u128;
+    let first = buses[0] as u64;
     let mut t = 0;
 
+    let mut timings = HashMap::new();
+
+    for (i, bus) in buses[1..].iter().enumerate() {
+        if *bus == 0 {
+            continue;
+        }
+
+        timings.insert(*bus as u64, (i as u64) + 1);
+    }
+
     loop {
-        if satisfies(t, &buses[1..]) {
+        if satisfies(t, &timings) {
             return t;
         }
 
@@ -136,15 +146,15 @@ fn earliest_timestamp(buses: &[u32]) -> u128 {
     }
 }
 
-fn satisfies(t: u128, buses: &[u32]) -> bool {
-    for (i, bus) in buses.iter().enumerate() {
+fn satisfies(t: u64, buses: &HashMap<u64, u64>) -> bool {
+    for (bus, i) in buses {
         if *bus == 0 {
             continue;
         }
 
-        let this_t = t + (i as u128) + 1;
+        let this_t = t + i;
 
-        if this_t % (*bus as u128) != 0 {
+        if this_t % bus != 0 {
             return false;
         }
     }
@@ -171,8 +181,20 @@ fn part1() -> u32 {
     return (next.1 - arrival) * next.0;
 }
 
+fn part2() -> u64 {
+    let input = fs::read_to_string("data/day13.txt")
+        .expect("Could not read data/day13.txt");
+
+    let (arrival, buses) = parse_buses(&input);
+
+    return earliest_timestamp(&buses);
+}
+
 fn main() {
     let result = part1();
     println!("Part 1: The answer is: {}", result);
+
+    let result = part2();
+    println!("Part 2: The answer is: {}", result);
 }
 
