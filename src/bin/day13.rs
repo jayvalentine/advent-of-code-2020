@@ -20,6 +20,19 @@ mod test_examples {
 
         assert_eq!(59, earliest_bus(arrival, buses).0);
     }
+
+    #[test]
+    fn example_part2() {
+        let input = "
+        939
+        7,13,x,x,59,x,31,19";
+
+        let (arrival, buses) = parse_buses(input);
+
+        assert_eq!(939, arrival);
+
+        assert_eq!(1068781, earliest_timestamp(&buses));
+    }
 }
 
 #[cfg(test)]
@@ -106,6 +119,37 @@ fn earliest_bus(arrival: u32, buses: Vec<u32>) -> (u32, u32) {
     }
 
     return (id, closest);
+}
+
+fn earliest_timestamp(buses: &[u32]) -> u128 {
+    // Only check multiples of the first entry in
+    // the schedule.
+    let first = buses[0] as u128;
+    let mut t = 0;
+
+    loop {
+        if satisfies(t, &buses[1..]) {
+            return t;
+        }
+
+        t += first;
+    }
+}
+
+fn satisfies(t: u128, buses: &[u32]) -> bool {
+    for (i, bus) in buses.iter().enumerate() {
+        if *bus == 0 {
+            continue;
+        }
+
+        let this_t = t + (i as u128) + 1;
+
+        if this_t % (*bus as u128) != 0 {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 fn next_departure(arrival: u32, id: u32) -> u32 {
